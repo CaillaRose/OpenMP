@@ -8,11 +8,10 @@
 
 int main(int argc, char **argv)
 {
-    unsigned long int N = 16;
-    unsigned long int i,j;
-    int *primes,option,k=2,found;
-    struct timeval t1, t2;
-    double elapsedTime;
+    unsigned long long int N;
+    unsigned long long int i,j,k=2;
+    int option,found;
+    struct timeval t1, t2, result;
 	
     while((option = getopt(argc, argv, "n:")) != -1) {
 		switch(option) {
@@ -26,11 +25,12 @@ int main(int argc, char **argv)
 		}
     }	
     
-    primes = malloc(sizeof(int)*N);
-    if (primes == NULL) {
-		printf("Error: Filed to allocate memory.\n");
+	int *primes;
+	primes = (int *) malloc(N*sizeof(int));
+	if (primes == NULL) {
+		printf("ERROR: Failed to allocate memory.\n");
 		exit(-1);
-    }
+	}
 
     for (i=2; i<N; i++) {
 		primes[i] = 1;
@@ -54,18 +54,18 @@ int main(int argc, char **argv)
     gettimeofday(&t2, NULL);
 
 	if (N <= 100) {
-    	printf("\nPrime numbers from 0 to %d:\n\n", N);	
-    	for (i=2; i<=N; i++) {
+    		printf("\nPrime numbers from 0 to %d:\n\n", N);	
+    		for (i=2; i<=N; i++) {
 			if (primes[i])
-	    		printf("%d ", i);    
-    	}
-    	printf("\n");
+	    			printf("%d ", i);    
+    		}
+    		printf("\n");
 	}
 
-    elapsedTime = (t2.tv_sec - t1.tv_sec)*1000000;
-    elapsedTime += (t2.tv_usec - t1.tv_usec);
-    printf("\nElapsed Time = %.1f mu_seconds\n", elapsedTime);
-			
-    free(primes);
+	timersub(&t2, &t1, &result);
+    	printf("\nElapsed Time = %ld Seconds, %ld Microseconds\n\n", result.tv_sec, result.tv_usec);
+	if (primes) {
+		free(primes);
+	}
     return 0;
 }

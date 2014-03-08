@@ -62,8 +62,8 @@ int main(int argc, char ** argv)
 {
 	int i,j,flag,option;
 	int N = 10;
-	struct timeval t1, t2;
-	double elapsedTime,det;
+	struct timeval t1, t2, result;
+	double det;
 	unsigned int seed = 2039478;
 	srand48(seed);
 
@@ -96,9 +96,8 @@ int main(int argc, char ** argv)
 	flag = gaussElim(A,b,&det,N);
 	gettimeofday(&t2, NULL);
 
-	elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000000;
-	elapsedTime = (t2.tv_usec - t1.tv_usec);
-	printf("\n\tElapsed Time = %.1f mu_seconds\n", elapsedTime);
+	timersub(&t2, &t1, &result);
+	printf("\n\tElapsed Time = %ld Seconds %ld Microseconds \n\n", result.tv_sec, result.tv_usec);
 
 	if (N < 30) {	
 		if (flag == 0) {

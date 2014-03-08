@@ -12,50 +12,55 @@ int gaussElim(double *A, double *b, double *det, int N)
 	double tol = 1e-30;
 	int npivot = 0;
 	*det = 1.0;
+    omp_set_num_threads(2);
 
 	/* Forward ELimination */
-	for (k=0; k<N; k++) {
-		for (i=k+1; i<N; i++){
-			if(fabs(A[i*N+k]) > fabs(A[k*N+k])) {
-				npivot++;
-				/* Interchange of Rows */
-				for (j=0; j<N; j++) {
-					temp = A[i*N+j];
-					A[i*N+j] = A[k*N+j];
-					A[k*N+j] = temp;
-				}
-				temp = b[i];
-				b[i] = b[k];
-				b[k] = temp;
-			}
-		}
-		/* Singularity Test */
-		if (fabs(A[k*N+k]) < tol) {
-			flag = 1;
-			return flag;
-		}
+    for (k=0; k<N; k++) { 
+        for (i=k+1; i<N; i++){
+            if(fabs(A[i*N+k]) > fabs(A[k*N+k])) {
+                npivot++;
+                /* Interchange of Rows */
+                for (j=0; j<N; j++) {
+                    temp = A[i*N+j];
+                    A[i*N+j] = A[k*N+j];
+                    A[k*N+j] = temp;
+                }
+                temp = b[i];
+                b[i] = b[k];
+                b[k] = temp;
+            }
+        }
+        /* Singularity Test */
+        if (fabs(A[k*N+k]) < tol) {
+            flag = 1;
+            return flag;
+        }
 
-		*det = *det * A[k*N+k];
-		#pragma omp parallel for schedule(dynamic)
-		for (i=k+1; i<N; i++) {
-			ratio = A[i*N+k]/A[k*N+k];
-			b[i] = b[i] - b[k] * ratio;
-			for (j=k; j<N; j++) {
-				A[i*N+j] = A[i*N+j] - A[k*N+j] * ratio;
-			}
-		}
-	}
+        *det = *det * A[k*N+k];
+    #pragma omp parallel
+    {
+        #pragma omp for 
+            for (i=k+1; i<N; i++) {
+                ratio = A[i*N+k]/A[k*N+k];
+                b[i] = b[i] - b[k] * ratio;
+                for (j=k; j<N; j++) {
+                    A[i*N+j] = A[i*N+j] - A[k*N+j] * ratio;
+                }
+            }
+        }
+    }
 	/* Adjust determinant */
 	if (npivot % 2 == 1)
 		*det = *det * (-1.0);
 	/* BackSubstitution */
 	b[N] = b[N] / A[N*N+N];
+   //#pragma omp parallel
 	for (i=N-1; i>1; i--) {
 		for (j=N; j>i+1; j--) {
 			b[i] = b[i] - A[i*N+j] * b[j];
 		}
 		b[i] = b[i]/A[(i-1)*N+i];
-	}
+	} 
 	flag = 0;
 	return flag;
 }
@@ -64,8 +69,8 @@ int main(int argc, char ** argv)
 {
 	int i,j,flag,option;
 	int N = 10;
-	struct timeval t1, t2;
-	double elapsedTime,det;
+	struct timeval t1, t2, result;
+	double det;
 	unsigned int seed = 2039478;
 	srand48(seed);
 
@@ -98,9 +103,8 @@ int main(int argc, char ** argv)
 	flag = gaussElim(A,b,&det,N);
 	gettimeofday(&t2, NULL);
 
-	elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000000;
-	elapsedTime = (t2.tv_usec - t1.tv_usec);
-	printf("\n\tElapsed Time = %.1f mu_seconds\n", elapsedTime);
+	timersub(&t2, &t1, &result);
+	printf("\n\tElapsed Time = %ld Seconds %ld Microseconds\n\n", result.tv_sec, result.tv_usec);
 
 	if (N < 30) {	
 		if (flag == 0) {
