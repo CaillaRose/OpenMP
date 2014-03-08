@@ -12,7 +12,5 @@ threadGauss: threadGauss.c
 
 all: serialSieve threadSieve gauss threadGauss
 
-test:
-
 clean:
 	rm serialSieve threadSieve gauss threadGauss
