@@ -1,0 +1,5 @@
+Serial versions of the Sieve of Eratosthenes and Gaussian Elimination. 
+OpenMP was used to speed up execution.
+Different Problem sizes and Thread Numbers were tested.
+Results in .dat files.
+gnuplot script files to generate postscript graphs are in .p files.
